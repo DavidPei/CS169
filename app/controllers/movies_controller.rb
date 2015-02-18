@@ -9,20 +9,28 @@ class MoviesController < ApplicationController
   def index
     #creating filter hash
     @all_ratings = Movie.get_all_ratings
-    if session[:haschecked] == nil
+    if session[:remember] == nil
       session[:ratings] = {'G'=>1, 'PG'=>1, 'PG-13'=>1, 'R'=>1}
+    end
+    if params[:sortBy] != nil
+      session[:sortBy] = params[:sortBy]
     end
     if params[:ratings] != nil
       session[:ratings] = params[:ratings]
-      session[:haschecked] = true
-    end
+      session[:remember] = true
+    else
+      flash.keep
+      if params[:sortBy] == nil
+        redirect_to(:sortBy => session[:sortBy], :ratings => session[:ratings])
+      else
+        redirect_to(:sortBy => params[:sortBy], :ratings =>session[:ratings])
+      end
+    end 
     @ratings_filter = session[:ratings].keys
 
     #sorting and filtering
     sortBy = params[:sortBy]
-    if sortBy == 'title'
-      @movies = Movie.find(:all, :conditions => {:rating => @ratings_filter}, :order => sortBy.to_s)
-    elsif sortBy == 'release_date'
+    if sortBy == 'title' or sortBy == 'release_date'
       @movies = Movie.find(:all, :conditions => {:rating => @ratings_filter}, :order => sortBy.to_s)
     else
       @movies = Movie.find(:all, :conditions => {:rating => @ratings_filter})
